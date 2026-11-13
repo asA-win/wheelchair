@@ -1,0 +1,99 @@
+{
+  "type": "FeatureCollection",
+  "name": "MidtownPedestrianNetwork",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "segment-001",
+        "highway": "footway",
+        "footway": "sidewalk",
+        "surface": "paved_concrete",
+        "smoothness": "good",
+        "width_m": 1.8,
+        "clear_width_m": 1.35,
+        "curb_ramp": "both_ends",
+        "incline": "3.8%",
+        "obstacles_count": 1,
+        "obstacle_type": "temporary_escooter",
+        "accessibility_score": 86,
+        "status": "Good accessibility with minor caution",
+        "evaluation": {
+          "pavement_condition": "Good",
+          "ramp_availability": "Available",
+          "staircase": "Not detected",
+          "obstacles": "1 detected",
+          "surface_slope": "Moderate"
+        }
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-73.985131, 40.748817, 15.2],
+          [-73.984852, 40.749021, 16.8],
+          [-73.984521, 40.749285, 18.5]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "crossing-001",
+        "highway": "crossing",
+        "crossing": "marked",
+        "tactile_paving": "yes",
+        "kerb": "lowered",
+        "accessibility_score": 95,
+        "status": "Fully compliant crossing"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-73.984521, 40.749285, 18.5]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "segment-002",
+        "highway": "footway",
+        "footway": "sidewalk",
+        "surface": "concrete",
+        "smoothness": "excellent",
+        "width_m": 2.2,
+        "clear_width_m": 2.2,
+        "curb_ramp": "yes",
+        "incline": "1.1%",
+        "obstacles_count": 0,
+        "accessibility_score": 96,
+        "status": "Excellent accessibility"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-73.984521, 40.749285, 18.5],
+          [-73.984189, 40.749552, 19.1],
+          [-73.983802, 40.749821, 19.8]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "segment-003",
+        "highway": "steps",
+        "step_count": 8,
+        "handrail": "yes",
+        "ramp": "no",
+        "accessibility_score": 32,
+        "status": "Inaccessible for wheelchair users"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-73.984852, 40.749021, 16.8],
+          [-73.985010, 40.749190, 19.4]
+        ]
+      }
+    }
+  ]
+}

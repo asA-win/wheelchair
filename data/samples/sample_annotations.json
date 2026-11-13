@@ -1,0 +1,150 @@
+{
+  "scenario_1_illustrative_good.jpg": {
+    "metadata": {
+      "location": "5th Avenue & E 34th St, New York, NY",
+      "timestamp": "2026-11-13T10:15:00Z",
+      "sensor": "Pedestrian Street-Level Mapping Camera"
+    },
+    "pavement_condition": "Good",
+    "ramp_availability": "Available",
+    "staircase": "Not detected",
+    "surface_slope": "Moderate",
+    "gradient_percent": 3.8,
+    "path_width_m": 1.80,
+    "clear_width_m": 1.35,
+    "items": [
+      {
+        "label": "E-Scooter (Obstacle)",
+        "obstacle_type": "Temporary",
+        "x_min": 0.62,
+        "y_min": 0.64,
+        "x_max": 0.72,
+        "y_max": 0.79,
+        "confidence": 0.94,
+        "description": "Dockless electric scooter parked on sidewalk corridor margin, narrowing path."
+      },
+      {
+        "label": "Curb Ramp with Tactile Paving",
+        "obstacle_type": null,
+        "x_min": 0.66,
+        "y_min": 0.81,
+        "x_max": 0.84,
+        "y_max": 0.98,
+        "confidence": 0.96,
+        "description": "ADA compliant lowered curb ramp with truncated dome detectable warning surface."
+      }
+    ],
+    "gps": {
+      "latitude": 40.748817,
+      "longitude": -73.985131,
+      "altitude_m": 16.5,
+      "heading_deg": 42.0
+    }
+  },
+  "scenario_2_high_accessibility.jpg": {
+    "metadata": {
+      "location": "Broad Street Pedestrian Mall",
+      "timestamp": "2026-11-13T10:20:00Z",
+      "sensor": "Mobile Accessibility Rig"
+    },
+    "pavement_condition": "Good",
+    "ramp_availability": "Available",
+    "staircase": "Not detected",
+    "surface_slope": "Gentle",
+    "gradient_percent": 1.1,
+    "path_width_m": 2.20,
+    "clear_width_m": 2.20,
+    "items": [
+      {
+        "label": "Wide Curb Ramp",
+        "obstacle_type": null,
+        "x_min": 0.68,
+        "y_min": 0.82,
+        "x_max": 0.85,
+        "y_max": 0.98,
+        "confidence": 0.98,
+        "description": "Wide, level transition curb ramp with tactile pavers."
+      }
+    ],
+    "gps": {
+      "latitude": 40.749552,
+      "longitude": -73.984189,
+      "altitude_m": 18.2,
+      "heading_deg": 40.5
+    }
+  },
+  "scenario_3_severe_barriers.jpg": {
+    "metadata": {
+      "location": "Grand Staircase Access Point",
+      "timestamp": "2026-11-13T10:25:00Z",
+      "sensor": "Mobile Accessibility Rig"
+    },
+    "pavement_condition": "Poor",
+    "ramp_availability": "Missing",
+    "staircase": "Detected",
+    "surface_slope": "Gentle",
+    "gradient_percent": 2.2,
+    "path_width_m": 1.10,
+    "clear_width_m": 0.62,
+    "items": [
+      {
+        "label": "Staircase Flight (5 Steps)",
+        "obstacle_type": "Permanent",
+        "x_min": 0.32,
+        "y_min": 0.65,
+        "x_max": 0.68,
+        "y_max": 0.85,
+        "confidence": 0.97,
+        "description": "Vertical elevation barrier with no adjacent ramp."
+      },
+      {
+        "label": "Traffic Cone Barrier",
+        "obstacle_type": "Temporary",
+        "x_min": 0.62,
+        "y_min": 0.65,
+        "x_max": 0.70,
+        "y_max": 0.78,
+        "confidence": 0.91,
+        "description": "Safety cone constricting remaining narrow pathway."
+      }
+    ],
+    "gps": {
+      "latitude": 40.749021,
+      "longitude": -73.984852,
+      "altitude_m": 16.8,
+      "heading_deg": 135.0
+    }
+  },
+  "scenario_4_steep_slope.jpg": {
+    "metadata": {
+      "location": "Hillside Avenue Sidewalk",
+      "timestamp": "2026-11-13T10:30:00Z",
+      "sensor": "Mobile Accessibility Rig"
+    },
+    "pavement_condition": "Good",
+    "ramp_availability": "Available",
+    "staircase": "Not detected",
+    "surface_slope": "Steep",
+    "gradient_percent": 9.5,
+    "path_width_m": 1.50,
+    "clear_width_m": 1.45,
+    "items": [
+      {
+        "label": "Steep Incline Warning",
+        "obstacle_type": null,
+        "x_min": 0.45,
+        "y_min": 0.50,
+        "x_max": 0.55,
+        "y_max": 0.70,
+        "confidence": 0.93,
+        "description": "Sidewalk running slope exceeds ADA 8.33% standard (9.5%)."
+      }
+    ],
+    "gps": {
+      "latitude": 40.750100,
+      "longitude": -73.983200,
+      "altitude_m": 24.5,
+      "heading_deg": 35.0
+    }
+  }
+}

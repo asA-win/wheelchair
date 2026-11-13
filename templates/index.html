@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-900 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wheelchair & Pedestrian Accessible Route Guide</title>
+  
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Leaflet Map CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .custom-scroll::-webkit-scrollbar { width: 6px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    .leaflet-popup-content-wrapper {
+      background: #0f172a;
+      color: #f8fafc;
+      border-radius: 12px;
+      padding: 4px;
+      font-size: 13px;
+      border: 1px solid #334155;
+    }
+    .leaflet-popup-tip { background: #0f172a; }
+  </style>
+</head>
+<body class="h-full flex flex-col md:flex-row overflow-hidden bg-slate-950">
+
+  <!-- ========================================================== -->
+  <!-- LEFT SIDEBAR: SIMPLE, INTUITIVE NAVIGATION PANEL           -->
+  <!-- ========================================================== -->
+  <div class="w-full md:w-[480px] lg:w-[520px] h-full flex flex-col bg-slate-900 border-r border-slate-800 z-20 shadow-2xl shrink-0">
+    
+    <!-- Top Header -->
+    <div class="p-5 border-b border-slate-800 bg-slate-900/90 backdrop-blur">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xl border border-emerald-500/30">
+            ♿
+          </div>
+          <div>
+            <h1 class="font-bold text-base text-white tracking-tight">Accessible Route Finder</h1>
+            <p class="text-xs text-slate-400">Find safe sidewalk routes without stairs or barriers</p>
+          </div>
+        </div>
+
+        <!-- Official Report Toggle Button -->
+        <button onclick="openReportModal()" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center gap-1.5 shadow-sm">
+          <span>📋</span>
+          <span>View Report</span>
+        </button>
+      </div>
+
+      <!-- Choose Location Dropdown -->
+      <div class="mt-4">
+        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Choose Street or Scenario</label>
+        <select id="scenario-dropdown" onchange="selectScenario(this.value)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500 transition cursor-pointer">
+          <option value="scenario_1_illustrative_good.jpg">📍 5th Ave & 34th St (Score: 86 / 100 — Has Ramp & 1 Scooter)</option>
+          <option value="scenario_2_high_accessibility.jpg">📍 Broad St Pedestrian Mall (Score: 100 / 100 — Perfect Walkway)</option>
+          <option value="scenario_3_severe_barriers.jpg">📍 Grand Staircase (Score: 0 / 100 — Blocked by 8 Steps)</option>
+          <option value="scenario_4_steep_slope.jpg">📍 Hillside Ave (Score: 80 / 100 — Steep Uphill Slope)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Scrollable Content -->
+    <div class="flex-1 overflow-y-auto p-5 space-y-5 custom-scroll">
+      
+      <!-- BIG ACCESSIBILITY SCORE CARD (INSTANTLY CLEAR) -->
+      <div id="score-summary-card" class="bg-gradient-to-br from-emerald-950/40 via-slate-900 to-slate-950 border border-emerald-500/30 rounded-2xl p-5 shadow-lg relative overflow-hidden">
+        
+        <div class="flex items-start justify-between">
+          <div>
+            <span class="text-xs font-semibold uppercase tracking-wider text-emerald-400 block mb-1">Sidewalk Safety Score</span>
+            <div class="flex items-baseline gap-2">
+              <span id="big-score" class="text-5xl font-extrabold text-white tracking-tight">86</span>
+              <span class="text-slate-400 text-lg font-semibold">/ 100</span>
+            </div>
+            <div id="big-score-status" class="text-sm font-semibold text-emerald-400 mt-1">
+              ✅ Safe to use (Good Accessibility)
+            </div>
+          </div>
+
+          <div id="big-score-badge" class="px-3.5 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-bold shadow-sm">
+            Accessible
+          </div>
+        </div>
+
+        <p id="big-score-explanation" class="text-xs text-slate-300 mt-3 pt-3 border-t border-slate-800/80 leading-relaxed">
+          Good pavement and curb ramps are present. The path is slightly narrowed by 1 parked e-scooter, but wheelchairs can pass safely.
+        </p>
+      </div>
+
+      <!-- SIMPLE 5-POINT SAFETY CHECKLIST -->
+      <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center justify-between">
+          <span>Sidewalk Conditions at a Glance</span>
+          <span class="text-[10px] text-slate-500">Live Scan</span>
+        </h3>
+
+        <div class="space-y-2.5 text-xs">
+          <!-- 1. Pavement Condition -->
+          <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80">
+            <div class="flex items-center gap-2.5">
+              <span id="chk-pavement-icon" class="text-base">🟢</span>
+              <span class="font-medium text-slate-200">Pavement Quality</span>
+            </div>
+            <span id="chk-pavement-text" class="font-bold text-emerald-400">Good & Smooth</span>
+          </div>
+
+          <!-- 2. Curb Ramp -->
+          <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80">
+            <div class="flex items-center gap-2.5">
+              <span id="chk-ramp-icon" class="text-base">🟢</span>
+              <span class="font-medium text-slate-200">Curb Ramp</span>
+            </div>
+            <span id="chk-ramp-text" class="font-bold text-emerald-400">Available at corner</span>
+          </div>
+
+          <!-- 3. Staircase Barrier -->
+          <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80">
+            <div class="flex items-center gap-2.5">
+              <span id="chk-stairs-icon" class="text-base">🟢</span>
+              <span class="font-medium text-slate-200">Staircases (Steps)</span>
+            </div>
+            <span id="chk-stairs-text" class="font-bold text-slate-300">None (No stairs)</span>
+          </div>
+
+          <!-- 4. Obstacles -->
+          <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80">
+            <div class="flex items-center gap-2.5">
+              <span id="chk-obstacles-icon" class="text-base">🟡</span>
+              <span class="font-medium text-slate-200">Obstacles</span>
+            </div>
+            <span id="chk-obstacles-text" class="font-bold text-amber-400">1 Scooter detected</span>
+          </div>
+
+          <!-- 5. Slope -->
+          <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80">
+            <div class="flex items-center gap-2.5">
+              <span id="chk-slope-icon" class="text-base">🟡</span>
+              <span class="font-medium text-slate-200">Hill / Incline</span>
+            </div>
+            <span id="chk-slope-text" class="font-bold text-amber-400">Moderate slope (3.8%)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROUTE COMPARISON SELECTOR (ACCESSIBLE VS STANDARD) -->
+      <div class="space-y-3">
+        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400">Choose Route On Map</label>
+        
+        <div class="grid grid-cols-2 gap-3">
+          <button id="btn-route-acc" onclick="changeRouteMode('accessible')" class="p-3 rounded-xl border-2 border-emerald-500 bg-emerald-500/10 text-left transition flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <span class="text-lg">♿</span>
+              <span class="text-[10px] bg-emerald-500 text-slate-950 font-extrabold px-1.5 py-0.5 rounded">RECOMMENDED</span>
+            </div>
+            <div class="mt-2">
+              <div class="font-bold text-xs text-white">Wheelchair Route</div>
+              <div class="text-[11px] text-emerald-300">Bypasses all stairs (Safe)</div>
+            </div>
+          </button>
+
+          <button id="btn-route-std" onclick="changeRouteMode('standard')" class="p-3 rounded-xl border border-slate-800 bg-slate-950 text-left transition hover:border-slate-700 flex flex-col justify-between opacity-80">
+            <div class="flex items-center justify-between">
+              <span class="text-lg">🚶</span>
+              <span class="text-[10px] bg-rose-500/20 text-rose-300 font-bold px-1.5 py-0.5 rounded">CONTAINS STAIRS</span>
+            </div>
+            <div class="mt-2">
+              <div class="font-bold text-xs text-slate-200">Shortest Route</div>
+              <div class="text-[11px] text-rose-400">Has 8 steps (Blocked!)</div>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- TURN-BY-TURN STEP DIRECTIONS -->
+      <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+            <span>🧭</span> Step-by-Step Directions
+          </h3>
+          <span id="route-distance-badge" class="text-xs font-bold text-emerald-400">158 m total</span>
+        </div>
+
+        <div id="directions-list" class="space-y-2 text-xs">
+          <!-- Injected via JS -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- BOTTOM ACTION BAR: SIMULATE WALKING -->
+    <div class="p-4 border-t border-slate-800 bg-slate-900/90 flex items-center gap-3">
+      <button id="sim-btn" onclick="toggleWalkingSimulation()" class="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-slate-950 font-bold text-sm transition shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2">
+        <span id="sim-btn-icon">▶️</span>
+        <span id="sim-btn-text">Simulate Walking on Map</span>
+      </button>
+    </div>
+
+  </div>
+
+
+  <!-- ========================================================== -->
+  <!-- RIGHT SIDE: FULLSCREEN INTERACTIVE MAP                     -->
+  <!-- ========================================================== -->
+  <div class="flex-1 relative h-full bg-slate-950">
+    <div id="leaflet-map" class="w-full h-full"></div>
+
+    <!-- Map Legend Card -->
+    <div class="absolute bottom-6 right-6 z-[1000] bg-slate-900/95 backdrop-blur border border-slate-800 rounded-xl p-3.5 shadow-2xl text-xs space-y-2 min-w-[190px]">
+      <div class="font-bold text-white border-b border-slate-800 pb-1 text-[11px] uppercase tracking-wider">Map Legend</div>
+      <div class="flex items-center gap-2">
+        <span class="w-4 h-1.5 bg-emerald-400 rounded-full inline-block"></span>
+        <span class="text-slate-300 font-medium">Safe Accessible Path</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="w-4 h-1.5 bg-rose-500 rounded-full inline-block border border-dashed"></span>
+        <span class="text-slate-300 font-medium">Blocked by Stairs</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span>🛴</span>
+        <span class="text-slate-300">Parked Scooter</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span>🛑</span>
+        <span class="text-slate-300">8 Steps (Stairs)</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span>🟡</span>
+        <span class="text-slate-300">Curb Ramp</span>
+      </div>
+    </div>
+
+    <!-- Active Navigation Bubble (Floating on Map) -->
+    <div id="live-bubble" class="absolute top-6 left-6 z-[1000] bg-slate-900/95 backdrop-blur border-2 border-emerald-500 rounded-2xl p-4 shadow-2xl max-w-sm hidden transition-all">
+      <div class="flex items-center gap-2 text-xs font-bold text-emerald-400 mb-1">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+        <span>CURRENT STEP</span>
+      </div>
+      <div id="live-bubble-text" class="text-sm font-semibold text-white leading-snug">
+        Depart along 5th Ave sidewalk towards 34th St
+      </div>
+      <div class="mt-2 text-xs text-slate-400 flex items-center justify-between border-t border-slate-800 pt-2 font-medium">
+        <span>Speed: 1.1 m/s (Wheelchair)</span>
+        <span class="text-emerald-400 font-bold">Ramp ahead</span>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ========================================================== -->
+  <!-- MODAL: OFFICIAL AUDIT SPECIFICATION REPORT                 -->
+  <!-- ========================================================== -->
+  <div id="report-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative space-y-4">
+      
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">📋</span>
+          <h2 class="font-bold text-base text-white">Official Accessibility Report</h2>
+        </div>
+        <button onclick="closeReportModal()" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center text-sm font-bold transition">
+          ✕
+        </button>
+      </div>
+
+      <!-- Exact Text Box Requested in User Prompt -->
+      <div class="space-y-2">
+        <label class="text-xs font-bold uppercase tracking-wider text-slate-400 block">Exact Output Format</label>
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 font-mono text-sm leading-relaxed text-slate-200">
+          <pre id="modal-report-text" class="whitespace-pre select-all">Accessibility analysis
+86/100
+Illustrative accessibility score
+Evaluation Result
+Pavement condition Good
+Ramp availability Available
+Staircase Not detected
+Obstacles 1 detected
+Surface slope Moderate</pre>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between pt-2">
+        <span class="text-xs text-slate-400">Formatted according to audit requirements</span>
+        <button onclick="copyModalReport()" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition flex items-center gap-1.5 shadow">
+          <span>📋 Copy Text</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ========================================================== -->
+  <!-- APPLICATION SCRIPT LOGIC                                   -->
+  <!-- ========================================================== -->
+  <script>
+    let map = null;
+    let mapLayers = [];
+    let activeRouteData = null;
+    let activeAuditData = null;
+    let currentMode = 'accessible';
+    let isSimulating = false;
+    let simTimer = null;
+    let simMarker = null;
+
+    document.addEventListener("DOMContentLoaded", () => {
+      initMap();
+      loadScenario("scenario_1_illustrative_good.jpg");
+      loadRoute();
+    });
+
+    // 1. Initialize Map
+    function initMap() {
+      map = L.map('leaflet-map', {
+        zoomControl: true,
+        attributionControl: false
+      }).setView([40.7492, -73.9846], 18);
+
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+    }
+
+    // 2. Load Scenario Data
+    function selectScenario(scenarioFile) {
+      loadScenario(scenarioFile);
+    }
+
+    async function loadScenario(scenarioFile) {
+      try {
+        const res = await fetch(`/api/audit?scenario=${scenarioFile}`);
+        const data = await res.json();
+        activeAuditData = data;
+        updateUI(data);
+      } catch (e) {
+        console.error("Failed to load scenario audit:", e);
+      }
+    }
+
+    // 3. Update Simple UI
+    function updateUI(data) {
+      const evalRes = data.evaluation_result || {};
+      const score = data.score_numeric || 86;
+
+      // Update Big Score Card
+      document.getElementById("big-score").innerText = score;
+      
+      const statusEl = document.getElementById("big-score-status");
+      const badgeEl = document.getElementById("big-score-badge");
+      const explEl = document.getElementById("big-score-explanation");
+
+      if (score >= 85) {
+        statusEl.className = "text-sm font-semibold text-emerald-400 mt-1";
+        statusEl.innerText = "✅ Safe to use (Good Accessibility)";
+        badgeEl.className = "px-3.5 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-bold shadow-sm";
+        badgeEl.innerText = "Accessible";
+        explEl.innerText = "Good pavement and curb ramps are present. Wheelchairs and strollers can navigate smoothly.";
+      } else if (score >= 60) {
+        statusEl.className = "text-sm font-semibold text-amber-400 mt-1";
+        statusEl.innerText = "⚠️ Use Caution (Moderate Barriers)";
+        badgeEl.className = "px-3.5 py-1.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold shadow-sm";
+        badgeEl.innerText = "Moderate";
+        explEl.innerText = "Path has a noticeable slope or minor obstruction. Usable with caution or assistance.";
+      } else {
+        statusEl.className = "text-sm font-semibold text-rose-400 mt-1";
+        statusEl.innerText = "🛑 Inaccessible (Severe Barrier)";
+        badgeEl.className = "px-3.5 py-1.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 text-xs font-bold shadow-sm";
+        badgeEl.innerText = "Blocked";
+        explEl.innerText = "Stairs detected with no ramp. Wheelchair users cannot pass through this section!";
+      }
+
+      // Update 5-point Checklist
+      document.getElementById("chk-pavement-text").innerText = evalRes["Pavement condition"] || "Good";
+      document.getElementById("chk-ramp-text").innerText = evalRes["Ramp availability"] || "Available";
+      document.getElementById("chk-stairs-text").innerText = evalRes["Staircase"] || "Not detected";
+      document.getElementById("chk-obstacles-text").innerText = evalRes["Obstacles"] || "None";
+      document.getElementById("chk-slope-text").innerText = `${evalRes["Surface slope"] || "Moderate"} slope`;
+
+      document.getElementById("chk-stairs-icon").innerText = evalRes["Staircase"] === "Detected" ? "🛑" : "🟢";
+      document.getElementById("chk-ramp-icon").innerText = evalRes["Ramp availability"] === "Missing" ? "🛑" : "🟢";
+      document.getElementById("chk-pavement-icon").innerText = evalRes["Pavement condition"] === "Poor" ? "🛑" : "🟢";
+      document.getElementById("chk-obstacles-icon").innerText = evalRes["Obstacles"] && evalRes["Obstacles"].includes("None") ? "🟢" : "🟡";
+
+      // Update Report Modal Text (exact specification)
+      const exactReportLines = [
+        data.title,
+        data.score,
+        data.score_label,
+        "Evaluation Result",
+        `Pavement condition ${evalRes["Pavement condition"] || "Good"}`,
+        `Ramp availability ${evalRes["Ramp availability"] || "Available"}`,
+        `Staircase ${evalRes["Staircase"] || "Not detected"}`,
+        `Obstacles ${evalRes["Obstacles"] || "None detected"}`,
+        `Surface slope ${evalRes["Surface slope"] || "Moderate"}`
+      ];
+      document.getElementById("modal-report-text").innerText = exactReportLines.join("\n");
+    }
+
+    // 4. Load Route Data
+    async function loadRoute() {
+      try {
+        const res = await fetch("/api/route");
+        const data = await res.json();
+        activeRouteData = data;
+        renderMapRoute();
+        renderDirections();
+      } catch (e) {
+        console.error("Failed to load route:", e);
+      }
+    }
+
+    function changeRouteMode(mode) {
+      currentMode = mode;
+      const btnAcc = document.getElementById("btn-route-acc");
+      const btnStd = document.getElementById("btn-route-std");
+
+      if (mode === 'accessible') {
+        btnAcc.className = "p-3 rounded-xl border-2 border-emerald-500 bg-emerald-500/10 text-left transition flex flex-col justify-between";
+        btnStd.className = "p-3 rounded-xl border border-slate-800 bg-slate-950 text-left transition hover:border-slate-700 flex flex-col justify-between opacity-80";
+      } else {
+        btnStd.className = "p-3 rounded-xl border-2 border-rose-500 bg-rose-500/10 text-left transition flex flex-col justify-between";
+        btnAcc.className = "p-3 rounded-xl border border-slate-800 bg-slate-950 text-left transition hover:border-slate-700 flex flex-col justify-between opacity-80";
+      }
+
+      renderMapRoute();
+      renderDirections();
+    }
+
+    function renderMapRoute() {
+      if (!map || !activeRouteData) return;
+
+      mapLayers.forEach(l => map.removeLayer(l));
+      mapLayers = [];
+
+      const plan = currentMode === 'accessible' ? activeRouteData.accessible_route : activeRouteData.standard_route;
+      const coords = plan.coordinates.map(c => [c[1], c[0]]);
+
+      const color = currentMode === 'accessible' ? '#10b981' : '#f43f5e';
+      const poly = L.polyline(coords, {
+        color: color,
+        weight: 6,
+        opacity: 0.9,
+        dashArray: currentMode === 'accessible' ? null : '8, 8'
+      }).addTo(map);
+      mapLayers.push(poly);
+
+      // Start Marker
+      const origin = activeRouteData.origin;
+      const oMarker = L.circleMarker([origin.latitude, origin.longitude], {
+        radius: 9,
+        fillColor: '#3b82f6',
+        color: '#ffffff',
+        weight: 3,
+        fillOpacity: 1
+      }).bindPopup(`<b>Start Here:</b> ${origin.name}`).addTo(map);
+      mapLayers.push(oMarker);
+
+      // End Marker
+      const dest = activeRouteData.destination;
+      const dMarker = L.circleMarker([dest.latitude, dest.longitude], {
+        radius: 9,
+        fillColor: '#10b981',
+        color: '#ffffff',
+        weight: 3,
+        fillOpacity: 1
+      }).bindPopup(`<b>Destination:</b> ${dest.name}`).addTo(map);
+      mapLayers.push(dMarker);
+
+      // Hazards
+      (activeRouteData.hazards || []).forEach(h => {
+        const icon = h.type === 'temporary_obstacle' ? '🛴' : '🛑';
+        const hMarker = L.marker([h.latitude, h.longitude], {
+          icon: L.divIcon({
+            html: `<div class="bg-slate-900 border-2 border-slate-700 w-8 h-8 rounded-full flex items-center justify-center text-sm shadow-xl">${icon}</div>`,
+            className: ''
+          })
+        }).bindPopup(`<b>${h.title}</b><br>${h.description}`).addTo(map);
+        mapLayers.push(hMarker);
+      });
+
+      // Curb Ramp
+      (activeRouteData.infrastructure || []).forEach(inf => {
+        const rMarker = L.marker([inf.latitude, inf.longitude], {
+          icon: L.divIcon({
+            html: `<div class="bg-emerald-950 border-2 border-emerald-400 w-8 h-8 rounded-full flex items-center justify-center text-sm shadow-xl">🟡</div>`,
+            className: ''
+          })
+        }).bindPopup(`<b>${inf.title}</b><br>${inf.description}`).addTo(map);
+        mapLayers.push(rMarker);
+      });
+
+      map.fitBounds(poly.getBounds(), { padding: [70, 70] });
+    }
+
+    function renderDirections() {
+      if (!activeRouteData) return;
+      const plan = currentMode === 'accessible' ? activeRouteData.accessible_route : activeRouteData.standard_route;
+
+      document.getElementById("route-distance-badge").innerText = `${plan.total_distance_m} m (${plan.duration_min} min)`;
+
+      const listEl = document.getElementById("directions-list");
+      listEl.innerHTML = "";
+
+      plan.steps.forEach((st, idx) => {
+        const isBlocked = !st.is_accessible;
+        const borderCls = isBlocked ? "border-rose-500/40 bg-rose-500/10" : "border-slate-800 bg-slate-900";
+        const icon = isBlocked ? "🛑" : "➡️";
+
+        listEl.innerHTML += `
+          <div class="p-3 rounded-xl border ${borderCls} flex items-start gap-3">
+            <span class="text-base mt-0.5">${icon}</span>
+            <div class="flex-1">
+              <div class="font-semibold text-white leading-snug">${st.instruction}</div>
+              <div class="text-[11px] text-slate-400 mt-1 flex items-center gap-2">
+                <span>${st.distance_m} meters</span>
+                <span>•</span>
+                <span class="${st.accessibility_score >= 80 ? 'text-emerald-400' : 'text-rose-400'} font-bold">Safety: ${st.accessibility_score}/100</span>
+              </div>
+              ${st.warning ? `<div class="mt-2 text-[11px] text-amber-300 bg-slate-950/80 p-2 rounded-lg border border-amber-500/20 font-medium">${st.warning}</div>` : ''}
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    // 5. Walking Simulation
+    function toggleWalkingSimulation() {
+      if (isSimulating) {
+        stopSimulation();
+      } else {
+        startSimulation();
+      }
+    }
+
+    function startSimulation() {
+      if (!activeRouteData) return;
+      const plan = currentMode === 'accessible' ? activeRouteData.accessible_route : activeRouteData.standard_route;
+      const coords = plan.coordinates.map(c => [c[1], c[0]]);
+
+      isSimulating = true;
+      document.getElementById("sim-btn-text").innerText = "Stop Walking";
+      document.getElementById("sim-btn-icon").innerText = "⏹️";
+
+      const bubble = document.getElementById("live-bubble");
+      bubble.classList.remove("hidden");
+
+      let idx = 0;
+      if (simMarker) map.removeLayer(simMarker);
+
+      simMarker = L.marker(coords[0], {
+        icon: L.divIcon({
+          html: `<div class="w-9 h-9 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-white shadow-2xl text-lg animate-bounce">♿</div>`,
+          className: ''
+        })
+      }).addTo(map);
+
+      simTimer = setInterval(() => {
+        if (idx >= coords.length) {
+          stopSimulation();
+          alert("You have safely arrived at your destination!");
+          return;
+        }
+
+        const pt = coords[idx];
+        simMarker.setLatLng(pt);
+        map.panTo(pt, { animate: true, duration: 0.5 });
+
+        const step = plan.steps[Math.min(idx, plan.steps.length - 1)];
+        document.getElementById("live-bubble-text").innerText = step.instruction;
+
+        idx++;
+      }, 1600);
+    }
+
+    function stopSimulation() {
+      isSimulating = false;
+      clearInterval(simTimer);
+      document.getElementById("sim-btn-text").innerText = "Simulate Walking on Map";
+      document.getElementById("sim-btn-icon").innerText = "▶️";
+      document.getElementById("live-bubble").classList.add("hidden");
+    }
+
+    // 6. Modal Functions
+    function openReportModal() {
+      document.getElementById("report-modal").classList.remove("hidden");
+    }
+    function closeReportModal() {
+      document.getElementById("report-modal").classList.add("hidden");
+    }
+    function copyModalReport() {
+      const text = document.getElementById("modal-report-text").innerText;
+      navigator.clipboard.writeText(text);
+      alert("Report copied to clipboard!");
+    }
+  </script>
+</body>
+</html>
