@@ -6,6 +6,16 @@ Interactive Dashboard & GPS Turn-by-Turn Guidance System.
 
 import os
 import json
+import werkzeug
+
+# Compatibility shim for Werkzeug 3.x with Flask versions expecting werkzeug.__version__
+if not hasattr(werkzeug, "__version__"):
+    try:
+        import importlib.metadata
+        werkzeug.__version__ = importlib.metadata.version("werkzeug")
+    except Exception:
+        werkzeug.__version__ = "3.0.0"
+
 from flask import Flask, render_template, jsonify, request, send_from_directory
 from cli import run_accessibility_audit
 from core.router import AccessibleRouter
